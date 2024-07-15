@@ -10,12 +10,10 @@ router.get('/',authenticateToken, (req, res) => {
             console.error('Error fetching category:', err);
             return res.status(500).json({ error: 'Failed to fetch users' });
         }
-
         // If no users found
         if (results.length === 0) {
             return res.status(404).json({ message: 'No category found' });
         }
-
         // If users found, return them
         res.json(results);
     });
