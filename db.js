@@ -104,6 +104,13 @@ function createTablesIfNotExist() {
             FOREIGN KEY (restaurant_id) REFERENCES Restaurants(restaurant_id),
             FOREIGN KEY (group_owner_id) REFERENCES Users(user_id)
         )`,
+        `CREATE TABLE IF NOT EXISTS Group_order_members (
+            group_order_member_id INT PRIMARY KEY AUTO_INCREMENT,
+            group_order_id INT NOT NULL,
+            user_id INT NOT NULL,
+            FOREIGN KEY (group_order_id) REFERENCES Group_order(group_order_id),
+            FOREIGN KEY (user_id) REFERENCES Users(user_id)
+        )`,
         `CREATE TABLE IF NOT EXISTS Drivers (
             driver_id INT PRIMARY KEY AUTO_INCREMENT,
             name VARCHAR(255) NOT NULL,
@@ -120,16 +127,18 @@ function createTablesIfNotExist() {
             status VARCHAR(20) NOT NULL,
             FOREIGN KEY (order_id) REFERENCES Orders(order_id)
         )`,
-        `CREATE TABLE IF NOT EXISTS Rating (
+        `CREATE TABLE IF NOT EXISTS rating (
             rating_id INT PRIMARY KEY AUTO_INCREMENT,
             user_id INT NOT NULL,
             restaurant_id INT NOT NULL,
-            rating INT NOT NULL,
+            rating DECIMAL(3, 1) NOT NULL,
+            review_message TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES Users(user_id),
             FOREIGN KEY (restaurant_id) REFERENCES Restaurants(restaurant_id)
         )`
-     ];
-
+     ]; 
     // Connect to MySQL
     connection.connect((err) => {
         if (err) {

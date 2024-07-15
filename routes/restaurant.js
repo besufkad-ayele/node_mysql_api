@@ -16,11 +16,10 @@ router.get('/', (req, res) => {
         res.json(results);
     });
 });
-
+ 
 // POST /api/restaurants
 router.post('/', (req, res) => {
     const restaurantData = req.body; // Assuming JSON payload with restaurant data
-
     // Validate restaurantData
     if (!restaurantData.name || !restaurantData.phone || !restaurantData.category_id ) {
         return res.status(400).json({ error: 'Restaurant name, phone, category_id are required!' });

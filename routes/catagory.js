@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db'); // Import your database connection or ORM setup
+const authenticateToken = require('../middleware/authenticateToken');
 
-router.get('/', (req, res) => {
+router.get('/',authenticateToken, (req, res) => {
     // Assuming you have a function in your db module to fetch all users
     db.connection.query('SELECT * FROM category', (err, results) => {
         if (err) {
@@ -20,7 +21,7 @@ router.get('/', (req, res) => {
     });
 });
 // POST /api/categories
-router.post('/', (req, res) => {
+router.post('/', authenticateToken,(req, res) => {
     const categoryData = req.body; // Assuming JSON payload with category data
 
     // Validate categoryData
