@@ -25,6 +25,7 @@ function createTablesIfNotExist() {
             phone VARCHAR(20) NOT NULL,
             role_id INT NOT NULL,
             UNIQUE (email),
+            UNIQUE (phone),
             FOREIGN KEY (role_id) REFERENCES Role(role_id)
         )`,
         `CREATE TABLE IF NOT EXISTS Category (

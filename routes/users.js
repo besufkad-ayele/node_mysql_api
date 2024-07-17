@@ -3,15 +3,10 @@ const router = express.Router();
 const db = require('../db'); // Import your database connection or ORM setup
 require('dotenv').config();
 const authenticateToken = require('../middleware/authenticateToken');
-
 // Default role ID for regular users
 const jwt = require('jsonwebtoken');
 const asyncHandler = require('express-async-handler');
-
-const DEFAULT_ROLE_ID = 1; // Assuming role_id 1 is for regular users
-
 let refreshTokens = []; // In-memory store for refresh tokens
-
 router.post('/login/email', asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
@@ -33,9 +28,8 @@ router.post('/login/email', asyncHandler(async (req, res) => {
         res.json({ success: true, message: 'Login successful.', accessToken, refreshToken });
     });
 }));
-
 // Get all users (protected route)
-router.get('/', authenticateToken, asyncHandler(async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
     db.connection.query('SELECT * FROM Users', (err, results) => {
         if (err) {
             console.error('Error fetching users:', err);
@@ -49,8 +43,6 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
         res.json({ success: true, message: 'Users retrieved successfully.', data: results });
     });
 }));
-
-
 // Login with Phone Number
 router.post('/login/phone', asyncHandler(async (req, res) => {
     const { phone, password } = req.body;
@@ -83,8 +75,6 @@ router.post('/login/phone', asyncHandler(async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error during login.' });
     }
 }));
-
-
 // Get a user by ID
 router.get('/:id', asyncHandler(async (req, res) => {
     const userID = req.params.id;
@@ -103,18 +93,34 @@ router.get('/:id', asyncHandler(async (req, res) => {
         res.json({ success: true, message: 'User retrieved successfully.', data: user });
     });
 }));
-
 // Create a new user
 router.post('/register', asyncHandler(async (req, res) => {
-    const { name, email, password, phone } = req.body;
+    const { name, email, password, phone,role_id } = req.body;
+    // Check if at least one of email or phone is provided
+    if (!(email || phone)) {
+        return res.status(400).json({ success: false, message: 'Either email or phone is required.' });
+    }
+    // Ensure required fields are provided
+    if (!name || !password) {
+        return res.status(400).json({ success: false, message: 'Name, password, and either email or phone are required.' });
+    }
+    // Set default role_id to 1
+    const defaultRoleId = role_id || 1;
 
-    if (!name || !email || !password || !phone) {
-        return res.status(400).json({ success: false, message: 'Name, email, password, and phone are required.' });
+    // Construct SQL query and values based on provided fields
+    let sql, values;
+    if (email && phone) {
+        sql = 'INSERT INTO Users (name, email, password, phone, role_id) VALUES (?, ?, ?, ?, ?)';
+        values = [name, email, password, phone, defaultRoleId];
+    } else if (email) {
+        sql = 'INSERT INTO Users (name, email, password, role_id) VALUES (?, ?, ?, ?)';
+        values = [name, email, password, defaultRoleId];
+    } else if (phone) {
+        sql = 'INSERT INTO Users (name, password, phone, role_id) VALUES (?, ?, ?, ?)';
+        values = [name, password, phone, defaultRoleId];
     }
 
-    const sql = 'INSERT INTO Users (name, email, password, phone) VALUES (?, ?, ?, ?)';
-    const values = [name, email, password, phone];
-
+    // Execute the SQL query
     db.connection.query(sql, values, (err, result) => {
         if (err) {
             console.error('Error inserting user:', err);
@@ -129,7 +135,6 @@ router.post('/register', asyncHandler(async (req, res) => {
         res.json({ success: true, message: 'User created successfully.', accessToken, refreshToken });
     });
 }));
-
 
 // Update a user
 router.put('/:id', asyncHandler(async (req, res) => {
@@ -174,6 +179,36 @@ router.delete('/:id', asyncHandler(async (req, res) => {
         res.json({ success: true, message: 'User deleted successfully.' });
     });
 }));
+// Logout
+//user using token can logout
+router.post('/logout', (req, res) => {
+    const refreshToken = req.body.token;
+    refreshTokens = refreshTokens.filter(token => token !== refreshToken);
+    res.json({ success: true, message: 'Logout successful.',data:refreshTokens });
+});
+
+
+// Refresh token
+// router.post('/refresh', (req, res) => {
+//     const refreshToken = req.body.token;
+//     if (!refreshToken) {
+//         return res.status(401).json({ success: false, message: 'Refresh token required.' });
+//     }
+
+//     if (!refreshTokens.includes(refreshToken)) {
+//         return res.status(403).json({ success: false, message: 'Invalid refresh token.' });
+//     }
+
+//     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
+//         if (err) {
+//             return res.status(403).json({ success: false, message: 'Invalid refresh token.' });
+//         }
+
+//         const accessToken = generateAccessToken({ id: user.id, email: user.email });
+//         res.json({ success: true, accessToken });
+//     });
+// });
+
 
 function generateAccessToken(user) {
     return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET);

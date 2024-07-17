@@ -16,7 +16,7 @@ router.get('/', (req, res) => {
         res.json(results);
     });
 });
- 
+
 // POST /api/address
 router.post('/', (req, res) => {
     const addressData = req.body; // Assuming JSON payload with address data

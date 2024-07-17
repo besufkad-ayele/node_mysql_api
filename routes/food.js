@@ -52,5 +52,66 @@ router.post('/', authenticateToken, (req, res) => {
         res.json({ message: 'Food created successfully', food: insertedFood });
     });
 });
+// GET /api/food/:id    
+router.get('/:id', (req, res) => {
+    const foodId = req.params.id;
+    db.connection.query('SELECT * FROM Food WHERE food_id = ?', [foodId], (err, results) => {
+        if (err) {
+            console.error('Error fetching Food:', err);
+            return res.status(500).json({ error: 'Failed to fetch food' });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'Food not found' });
+        }
+
+        res.json(results[0]);
+    });
+});
+
+// PUT /api/food/:id    
+router.put('/:id', authenticateToken, (req, res) => {
+    const foodId = req.params.id;
+    const foodData = req.body; // Assuming JSON payload with food data
+
+    // Validate foodData
+    if (!foodData.name && !foodData.category_id && !foodData.price && !foodData.content_id && !foodData.restaurant_id) {
+        return res.status(400).json({ error: 'Name, category_id, price, content_id, and restaurant_id are required!' });
+    }
+
+    // Update foodData in the database
+    const sql = 'UPDATE Food SET ? WHERE food_id = ?';
+    db.connection.query(sql, [foodData, foodId], (err, result) => {
+        if (err) {
+            console.error('Error updating Food:', err);
+            return res.status(500).json({ error: err.message });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Food not found' });
+        }
+
+        res.json({ message: 'Food updated successfully' });
+    });
+});
+
+// DELETE /api/food/:id
+router.delete('/:id', authenticateToken, (req, res) => {
+    const foodId = req.params.id;
+
+    db.connection.query('DELETE FROM Food WHERE food_id = ?', [foodId], (err, result) => {
+        if (err) {
+            console.error('Error deleting Food:', err);
+            return res.status(500).json({ error: err.message });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Food not found' });
+        }
+
+        res.json({ message: 'Food deleted successfully' });
+    });
+});
+
 
 module.exports = router;

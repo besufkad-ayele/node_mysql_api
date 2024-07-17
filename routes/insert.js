@@ -20,17 +20,17 @@ const ratingRouter = require('./rating');
 // Mount routers
 //use to be two line but now done in one 
 router.use('/users',  require('./users'));
-router.use('/role', roleRouter);
-router.use('/catagory', catagoryRouter);
-router.use('/restaurant', restaurantRouter);
+router.use('/roles', roleRouter);
+router.use('/catagorys', catagoryRouter);
+router.use('/restaurants', restaurantRouter);
 router.use('/address', addressRouter);
-router.use('/content', contentRouter);
-router.use('/food', foodRouter);
-router.use('/menu', menuRouter);
-router.use('/order', orderRouter);
-router.use('/grouporder', grouporderRouter);
-router.use('/groupordermember', groupordermemberRouter);
-router.use('/payment', paymentRouter);
-router.use('/rating', ratingRouter);
+router.use('/contents', contentRouter);
+router.use('/foods', foodRouter);
+router.use('/menus', menuRouter);
+router.use('/orders', orderRouter);
+router.use('/grouporders', grouporderRouter);
+router.use('/groupordermembers', groupordermemberRouter);
+router.use('/payments', paymentRouter);
+router.use('/ratings', ratingRouter);
 
 module.exports = router;

@@ -18,6 +18,55 @@ router.get('/',authenticateToken, (req, res) => {
         res.json(results);
     });
 });
+
+//delete category by id  //not needed now but incase if needed we can use this
+// DELETE /api/categories/:id
+router.delete('/:id', authenticateToken,(req, res) => {
+    const categoryId = req.params.id;
+
+    // Delete category from the database
+    const sql = 'DELETE FROM Category WHERE category_id = ?';
+    db.connection.query(sql, [categoryId], (err, result) => {
+        if (err) {
+            console.error('Error deleting category:', err);
+            return res.status(500).json({ error: 'Failed to delete category' });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Category not found' });
+        }
+
+        res.json({ message: 'Category deleted successfully' });
+    });
+});
+
+//update category by id
+// PUT /api/categories/:id
+router.put('/:id',authenticateToken, (req, res) => {
+    const categoryId = req.params.id;
+    const categoryData = req.body; // Assuming JSON payload with category data
+
+    // Validate categoryData
+    if (!categoryData.category_name || !categoryData.category_type) {
+        return res.status(400).json({ error: 'Category name and type are required!' });
+    }
+
+    // Update categoryData in the database
+    const sql = 'UPDATE Category SET ? WHERE category_id = ?';
+    db.connection.query(sql, [categoryData, categoryId], (err, result) => {
+        if (err) {
+            console.error('Error updating category:', err);
+            return res.status(500).json({ error: 'Failed to update category' });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Category not found' });
+        }
+
+        res.json({ message: 'Category updated successfully' });
+    });
+});
+
 // POST /api/categories
 router.post('/', authenticateToken,(req, res) => {
     const categoryData = req.body; // Assuming JSON payload with category data
