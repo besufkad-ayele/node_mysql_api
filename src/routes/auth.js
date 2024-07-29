@@ -1,8 +1,9 @@
 // routes/authRoutes.js (or a dedicated route file for tokens)
-
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const db = require('../../config/db');
+const { authenticateToken, checkRole } = require('../../services/middleware/authenticateToken');
 
 let refreshTokens = []; // In-memory store for refresh tokens
 

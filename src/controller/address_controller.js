@@ -1,8 +1,8 @@
 const express = require('express');
-const router = express.Router();
-const db = require('../db'); // Import your database connection or ORM setup
+const db = require('../../config/db');
 
-router.get('/', (req, res) => {
+
+exports.getallAdress = (req, res) => {
     db.connection.query('SELECT * FROM address', (err, results) => {
         if (err) {
             console.error('Error fetching Restaurants:', err);
@@ -15,10 +15,11 @@ router.get('/', (req, res) => {
 
         res.json(results);
     });
-});
+};
+
 
 // POST /api/address
-router.post('/', (req, res) => {
+exports.addAddress = (req, res) => {
     const addressData = req.body; // Assuming JSON payload with address data
 
     // Validate addressData
@@ -49,6 +50,5 @@ router.post('/', (req, res) => {
 
         res.json({ message: 'Address created successfully', address: insertedAddress });
     });
-});
+}
 
-module.exports = router;

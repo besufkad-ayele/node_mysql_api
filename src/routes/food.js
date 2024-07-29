@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db'); // Import your database connection or ORM setup
-const authenticateToken = require('../middleware/authenticateToken');
+const db = require('../../config/db');
+const { authenticateToken, checkRole } = require('../../services/middleware/authenticateToken');
 
 // GET /api/food
 router.get('/', (req, res) => {

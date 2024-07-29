@@ -4,11 +4,12 @@ const router = express.Router();
 // Import route handlers
 //here the example how to make these line in one if needed
 // const usersRouter = require('./users');
-const roleRouter = require('./role');
+
+const roleRouter = require('../routes/role_route');
+const addressRouter = require('../routes/adress_router');
+const foodRouter = require('./food');
 const catagoryRouter = require('./catagory');
 const restaurantRouter = require('./restaurant');
-const addressRouter = require('./adress');
-const foodRouter = require('./food');
 const contentRouter = require('./content');
 const menuRouter = require('./menu');
 const orderRouter = require('./order');
@@ -21,7 +22,7 @@ const ratingRouter = require('./rating');
 //use to be two line but now done in one 
 router.use('/users',  require('./users'));
 router.use('/roles', roleRouter);
-router.use('/catagorys', catagoryRouter);
+router.use('/categories', catagoryRouter);
 router.use('/restaurants', restaurantRouter);
 router.use('/address', addressRouter);
 router.use('/contents', contentRouter);

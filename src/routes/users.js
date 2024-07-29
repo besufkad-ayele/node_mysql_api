@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db'); // Import your database connection or ORM setup
 require('dotenv').config();
-const authenticateToken = require('../middleware/authenticateToken');
+const db = require('../../config/db');
+const authenticateToken = require('../../services/middleware/authenticateToken');
 // Default role ID for regular users
 const jwt = require('jsonwebtoken');
 const asyncHandler = require('express-async-handler');
@@ -187,7 +187,6 @@ router.post('/logout', (req, res) => {
     res.json({ success: true, message: 'Logout successful.',data:refreshTokens });
 });
 
-
 // Refresh token
 // router.post('/refresh', (req, res) => {
 //     const refreshToken = req.body.token;
@@ -208,7 +207,6 @@ router.post('/logout', (req, res) => {
 //         res.json({ success: true, accessToken });
 //     });
 // });
-
 
 function generateAccessToken(user) {
     return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET);

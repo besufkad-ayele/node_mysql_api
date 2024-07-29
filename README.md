@@ -103,4 +103,47 @@ VALUES ((SELECT restaurant_id FROM Restaurants WHERE name = 'Simple Bistro'),
 - **Users Table:** Includes a `role_id` column referencing the `Role` table to associate each user with a role.
 - **Orders and Group_order Tables:** Updated to include `user_role` columns for role-based permissions or categorization.
 
-This schema allows users to have specific roles, and operations can be controlled based on these roles, enhancing security and organization within your application. Adjust the queries as per your application's logic and requirements.
+This schema allows users to have specific roles, and operations can be controlled based on these roles, enhancing security and organization within your application. Adjust the queries as per your application's logic and requirements.'''
+
+
+
+
+project-name/
+│
+├── node_modules/                   # Folder for Node.js dependencies
+│
+├── src/                            # Source files of the app
+│   ├── controllers/                # Controller files
+│   │   ├── userController.js       # Example controller for us
+│   │   └── productController.js    # Example controller for p
+│   │
+│   ├── models/                     # Model files
+│   │   ├── userModel.js            # Example model for user
+│   │   └── productModel.js         # Example model for product
+│   │
+│   ├── views/                      # View files for the UI (if serving HTML)
+│   │   ├── userView.ejs            # Example view for user
+│   │   └── productView.ejs         # Example view for product
+│   │
+│   ├── routes/                     # Route definitions
+│   │   ├── userRoutes.js           # Routes for user operations
+│   │   └── productRoutes.js        # Routes for product operations
+│   │
+│   └── app.js                      # Entry point of the application
+│
+├── public/                         # Publicly accessible files (e.g., images, stylesheets, scripts)
+│   ├── css/                        # CSS files
+│   ├── js/                         # JavaScript files
+│   └── images/                     # Image files
+│
+├── config/                         # Configuration files and environment variables
+│   ├── db.js                       # Database configuration
+│   └── index.js                    # Main configuration file
+│
+├── test/                           # Test files
+│   ├── unit/                       # Unit tests
+│   └── integration/                # Integration tests
+│
+├── .env                            # Environment variables file
+├── package.json                    # Project metadata and dependencies
+└── README.md                       # Project overview and documentation

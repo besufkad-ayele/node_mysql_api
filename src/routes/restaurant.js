@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db'); // Import your database connection or ORM setup
 const { check, validationResult } = require('express-validator');
-const authMiddleware = require('../middleware/authenticateToken');
+const { authenticateToken, checkRole } = require('../../services/middleware/authenticateToken');
+const db = require('../../config/db');
 
-router.get('/', (req, res) => {
+// Get all restaurants
+router.get('/', authenticateToken, (req, res) => {
     db.connection.query('SELECT * FROM Restaurants', (err, results) => {
         if (err) {
             console.error('Error fetching Restaurants:', err);
@@ -18,10 +19,9 @@ router.get('/', (req, res) => {
         res.json(results);
     });
 });
- 
-//what we have to add in here the get method for the restaurant by id
-// GET /api/restaurants/:id
-router.get('/:id', (req, res) => {
+
+// Get restaurant by ID
+router.get('/:id', authenticateToken, (req, res) => {
     const restaurantId = req.params.id;
     db.connection.query('SELECT * FROM Restaurants WHERE restaurant_id = ?', [restaurantId], (err, results) => {
         if (err) {
@@ -36,9 +36,9 @@ router.get('/:id', (req, res) => {
         res.json(results[0]);
     });
 });
-//to update the resturant by id
-// PUT /api/restaurants/:id
-router.put('/:id', (req, res) => {
+
+// Update restaurant by ID
+router.put('/:id', authenticateToken, (req, res) => {
     const restaurantId = req.params.id;
     const restaurantData = req.body; // Assuming JSON payload with restaurant data
 
@@ -63,10 +63,8 @@ router.put('/:id', (req, res) => {
     });
 });
 
-
-//delete the restaurant by id
-// DELETE /api/restaurants/:id
-router.delete('/:id', (req, res) => {
+// Delete restaurant by ID
+router.delete('/:id', authenticateToken, (req, res) => {
     const restaurantId = req.params.id;
 
     db.connection.query('DELETE FROM Restaurants WHERE restaurant_id = ?', [restaurantId], (err, result) => {
@@ -87,7 +85,7 @@ router.delete('/:id', (req, res) => {
 router.post(
     '/',
     [
-      authMiddleware,
+      authenticateToken,
       check('name', 'Name is required').not().isEmpty(),
       check('phone', 'Phone is required').not().isEmpty(),
       check('category_id', 'Category ID is required').isInt(),
@@ -99,49 +97,24 @@ router.post(
       }
   
       const { name, phone, category_id } = req.body;
-  
-      const sql = 'INSERT INTO Restaurants (name, phone, category_id) VALUES (?, ?, ?)';
-      const values = [name, phone, category_id];
-  
-      db.connection.query(sql, values, (err, result) => {
-        if (err) {
-          console.error('Error adding restaurant:', err);
-          return res.status(500).json({ error: 'Failed to add restaurant' });
-        }
+      console.log('User:', req.user);
 
-        res.json({ message: 'Restaurant added successfully', restaurant_id: result.insertId });
-      });
+      if (category_id == 2) {
+        const sql = 'INSERT INTO Restaurants (name, phone, category_id) VALUES (?, ?, ?)';
+        const values = [name, phone, category_id];
+  
+        db.connection.query(sql, values, (err, result) => {
+          if (err) {
+            console.error('Error adding restaurant:', err);
+            return res.status(500).json({ error: 'Failed to add restaurant' });
+          }
+
+          res.json({ message: 'Restaurant added successfully', restaurant_id: result.insertId });
+        });
+      } else {
+        res.status(403).json({ message: 'You are not allowed to add a restaurant. Only Admins are allowed.' });
+      }
     }
-  );
-// POST /api/restaurants
-//these have been change to the above post method only by the admin
-// router.post('/', (req, res) => {
-//     const restaurantData = req.body; // Assuming JSON payload with restaurant data
-//     // Validate restaurantData
-//     if (!restaurantData.name || !restaurantData.phone || !restaurantData.category_id ) {
-//         return res.status(400).json({ error: 'Restaurant name, phone, category_id are required!' });
-//     }
+);
 
-//     // Insert restaurantData into the database
-//     const sql = 'INSERT INTO Restaurants (name, category_id, phone) VALUES (?, ?, ?)';
-//     const values = [restaurantData.name, restaurantData.category_id, restaurantData.phone];
-
-//     db.connection.query(sql, values, (err, result) => {
-//         if (err) {
-//             console.error('Error inserting Restaurant:', err);
-//             return res.status(500).json({ error: err.message });
-//         }
-
-//         const insertedRestaurant = {
-//             restaurant_id: result.insertId,
-//             name: restaurantData.name,
-//             phone: restaurantData.phone,
-//             category_id: restaurantData.category_id
-//         };
-
-//         res.json({ message: 'Restaurant created successfully', restaurant: insertedRestaurant });
-//     });
-// });
-
-// Export the router so it can be mounted in the main application
 module.exports = router;
