@@ -2,14 +2,12 @@ const express = require('express');
 const router = express.Router();
 
 const { authenticateToken, checkRole } = require('../../services/middleware/authenticateToken');
+const addressController = require('../controller/address_controller');
 
-const adressController = require('../controller/address_controller');
+// GET /api/addresses
+router.get('/', authenticateToken, addressController.getAllAddress);
 
-// GET /api/adresses
-router.get('/', authenticateToken, adressController.getallAdress);
-
-// POST /api/roles
-router.post('/', authenticateToken, adressController.addAddress);
+// POST /api/address
+router.post('/', authenticateToken, addressController.addAddress);
 
 module.exports = router;
-

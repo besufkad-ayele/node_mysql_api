@@ -1,36 +1,29 @@
-const express = require('express');
 const db = require('../../config/db');
 
 // GET /api/users
-exports.getAllRoles =(req, res) => {
-    // Assuming you have a function in your db module to fetch all users
+exports.getAllRoles = (req, res) => {
     db.connection.query('SELECT * FROM role', (err, results) => {
         if (err) {
-            console.error('Error fetching users:', err);
-            return res.status(500).json({ error: 'Failed to fetch users' });
+            console.error('Error fetching roles:', err);
+            return res.status(500).json({ error: 'Failed to fetch roles' });
         }
 
-        // If no users found
         if (results.length === 0) {
             return res.status(404).json({ message: 'No role found' });
         }
 
-        // If users found, return them
         res.json(results);
     });
 };
 
 // POST /api/role
-// we can but no need to create the role
-exports.createRole =  (req, res) => {
-    const roleData = req.body; // Assuming JSON payload
+exports.createRole = (req, res) => {
+    const roleData = req.body;
 
-    // Validate roleData
     if (!roleData.role_name) {
         return res.status(400).json({ error: 'Role name required!' });
     }
 
-    // Example: Insert roleData into the database
     const sql = 'INSERT INTO role (role_name) VALUES (?)';
     const values = [roleData.role_name];
 
@@ -48,12 +41,11 @@ exports.createRole =  (req, res) => {
         res.json({ message: 'Role created successfully', role: insertedRole });
     });
 };
-//delete role by id  //not needed now but incase if needed we can use this  
+
 // DELETE /api/role/:id
-exports.deleteRole =(req, res) => {
+exports.deleteRole = (req, res) => {
     const roleId = req.params.id;
 
-    // Delete role from the database
     const sql = 'DELETE FROM role WHERE role_id = ?';
     db.connection.query(sql, [roleId], (err, result) => {
         if (err) {
@@ -68,19 +60,16 @@ exports.deleteRole =(req, res) => {
         res.json({ message: 'Role deleted successfully' });
     });
 };
-//here we can add the update delete method but once created no need to update or delete the role
-// PUT /api/role/:id
-// we can but no need to update the role
-exports.updateRole= (req, res) => {
-    const roleId = req.params.id;
-    const roleData = req.body; // Assuming JSON payload
 
-    // Validate roleData
+// PUT /api/role/:id
+exports.updateRole = (req, res) => {
+    const roleId = req.params.id;
+    const roleData = req.body;
+
     if (!roleData.role_name) {
         return res.status(400).json({ error: 'Role name required!' });
     }
 
-    // Update roleData in the database
     const sql = 'UPDATE role SET ? WHERE role_id = ?';
     db.connection.query(sql, [roleData, roleId], (err, result) => {
         if (err) {

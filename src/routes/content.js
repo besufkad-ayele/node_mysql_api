@@ -1,53 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../../config/db');
-const { authenticateToken, checkRole } = require('../../services/middleware/authenticateToken');
+const { authenticateToken } = require('../../services/middleware/authenticateToken');
+const contentController = require('../controller/content_controller');
 
 // GET /api/content
-router.get('/', (req, res) => {
-    db.connection.query('SELECT * FROM Content', (err, results) => {
-        if (err) {
-            console.error('Error fetching Content:', err);
-            return res.status(500).json({ error: 'Failed to fetch content' });
-        }
-
-        if (results.length === 0) {
-            return res.status(404).json({ message: 'No content found' });
-        }
-
-        res.json(results);
-    });
-});
+router.get('/', authenticateToken, contentController.getAllContent);
 
 // POST /api/content
-router.post('/', (req, res) => {
-    const contentData = req.body; // Assuming JSON payload with content data
-
-    // Validate contentData
-    if (contentData.calories === undefined || contentData.protein === undefined || contentData.fat === undefined || contentData.is_spicy === undefined) {
-        return res.status(400).json({ error: 'Calories, protein, fat, and is_spicy are required!' });
-    }
-
-    // Insert contentData into the database
-    const sql = 'INSERT INTO Content (calories, protein, fat, is_spicy) VALUES (?, ?, ?, ?)';
-    const values = [contentData.calories, contentData.protein, contentData.fat, contentData.is_spicy];
-
-    db.connection.query(sql, values, (err, result) => {
-        if (err) {
-            console.error('Error inserting Content:', err);
-            return res.status(500).json({ error: err.message });
-        }
-
-        const insertedContent = {
-            content_id: result.insertId,
-            calories: contentData.calories,
-            protein: contentData.protein,
-            fat: contentData.fat,
-            is_spicy: contentData.is_spicy
-        };
-
-        res.json({ message: 'Content created successfully', content: insertedContent });
-    });
-});
+router.post('/', authenticateToken, contentController.addContent);
 
 module.exports = router;
