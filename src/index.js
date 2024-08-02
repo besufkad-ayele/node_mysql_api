@@ -3,8 +3,8 @@ const express = require('express');
 const db = require('../config/db');
 const routes = require('./routes/insert');
 db.createTablesIfNotExist();
-
 const app = express();
+
 
 // Middleware
 app.use(express.json());

@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 require('dotenv').config();
 const db = require('../../config/db');
-const authenticateToken = require('../../services/middleware/authenticateToken');
 // Default role ID for regular users
 const jwt = require('jsonwebtoken');
 const asyncHandler = require('express-async-handler');
+const { authenticateToken, checkRole } = require('../../services/middleware/authenticateToken');
+
 let refreshTokens = []; // In-memory store for refresh tokens
 router.post('/login/email', asyncHandler(async (req, res) => {
     const { email, password } = req.body;
@@ -29,7 +30,8 @@ router.post('/login/email', asyncHandler(async (req, res) => {
     });
 }));
 // Get all users (protected route)
-router.get('/', asyncHandler(async (req, res) => {
+
+router.get('/',asyncHandler(async (req, res) => {
     db.connection.query('SELECT * FROM Users', (err, results) => {
         if (err) {
             console.error('Error fetching users:', err);
@@ -207,6 +209,46 @@ router.post('/logout', (req, res) => {
 //         res.json({ success: true, accessToken });
 //     });
 // });
+
+//get user id by the email
+// the post man method will look like 
+// http://localhost:3000/api/users/email/1
+router.get('/email/:email', asyncHandler(async (req, res) => {
+    const email = req.params.email;
+
+    db.connection.query('SELECT * FROM Users WHERE email = ?', [email], (err, results) => {
+        if (err) {
+            console.error('Error fetching user:', err);
+            return res.status(500).json({ success: false, message: err.message });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ success: false, message: 'User not found.' });
+        }
+
+        const user = results[0];
+        res.json({ success: true, message: 'User retrieved successfully.', data: user });
+    });
+}));
+
+//get method to print respond message of working here
+      router.get('/verifytoken/getuser',  authenticateToken,(req, res) => {
+        email = req.user.email;
+        console.log(email);
+        //checke for email form database 
+        db.connection.query('SELECT * FROM Users WHERE email = ?', [email], (err, results) => {
+            if (err) {
+                console.error('Error fetching user:', err);
+                return res.status(500).json({ success: false, message: err.message });
+            }
+            if (results.length === 0) {
+                return res.status(404).json({ success: false, message: 'No users found' });
+            }
+            res.json({ success: true, message: 'API is working', data: results });
+        });
+    });
+
+
 
 function generateAccessToken(user) {
     return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET);
