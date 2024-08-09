@@ -19,7 +19,6 @@ const grouporderRouter = require('./grouporder');
 const groupordermemberRouter = require('./groupmembers');
 const paymentRouter = require('./payment');
 const ratingRouter = require('./rating');
-
 // Mount routers
 //use to be two line but now done in one 
 router.use('/users',  require('./users'));

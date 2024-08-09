@@ -11,6 +11,7 @@ const connection = mysql.createConnection({
 
 // Function to create tables if they don't exist
 function createTablesIfNotExist() {
+    //sql query to add one column to table
     const sqlQueries = [
         // SQL queries to create tables
         `CREATE TABLE IF NOT EXISTS Role (
@@ -37,6 +38,7 @@ function createTablesIfNotExist() {
             restaurant_id INT PRIMARY KEY AUTO_INCREMENT,
             name VARCHAR(255) NOT NULL,
             phone VARCHAR(20) NOT NULL,
+            image VARCHAR(255),
             category_id INT NOT NULL,
             FOREIGN KEY (category_id) REFERENCES Category(category_id)
         )`,
@@ -64,8 +66,9 @@ function createTablesIfNotExist() {
             food_id INT PRIMARY KEY AUTO_INCREMENT,
             category_id INT NOT NULL,
             name VARCHAR(255) NOT NULL,
+            isfavorite BOOLEAN DEFAULT FALSE,
+            description VARCHAR(255),
             image VARCHAR(255),
-            price DECIMAL(10, 2),
             content_id INT NOT NULL,
             discount DECIMAL(5, 2),
             restaurant_id INT NOT NULL,
@@ -77,6 +80,7 @@ function createTablesIfNotExist() {
             menu_id INT PRIMARY KEY AUTO_INCREMENT,
             restaurant_id INT NOT NULL,
             food_id INT NOT NULL,
+            discount DOUBLE DEFAULT 0,
             price DECIMAL(10, 2) NOT NULL,
             FOREIGN KEY (restaurant_id) REFERENCES Restaurants(restaurant_id),
             FOREIGN KEY (food_id) REFERENCES Food(food_id)
@@ -92,16 +96,18 @@ function createTablesIfNotExist() {
             FOREIGN KEY (driver_id) REFERENCES Users(user_id),
             FOREIGN KEY (restaurant_id) REFERENCES Restaurants(restaurant_id)
         )`,
-        `CREATE TABLE IF NOT EXISTS Group_order (
+       ` CREATE TABLE IF NOT EXISTS Group_order (
             group_order_id INT PRIMARY KEY AUTO_INCREMENT,
             restaurant_id INT NOT NULL,
             group_owner_id INT NOT NULL,
             status VARCHAR(50),
+            group_name VARCHAR(100),
             invitation_code VARCHAR(20),
             payment_method VARCHAR(20),
             payment_status VARCHAR(20),
             payment_type ENUM('owner_pays', 'split_evenly', 'pay_own_order') DEFAULT 'owner_pays',
             total_amount DECIMAL(10, 2),
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (restaurant_id) REFERENCES Restaurants(restaurant_id),
             FOREIGN KEY (group_owner_id) REFERENCES Users(user_id)
         )`,

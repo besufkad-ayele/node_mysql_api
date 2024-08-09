@@ -26,7 +26,7 @@ router.post('/login/email', asyncHandler(async (req, res) => {
         const refreshToken = jwt.sign({ id: user.id, email: user.email }, process.env.REFRESH_TOKEN_SECRET);
 
         refreshTokens.push(refreshToken);
-        res.json({ success: true, message: 'Login successful.', accessToken, refreshToken });
+        res.json({ success: true, message: 'Login successful.', accessToken, refreshToken,data:user });
     });
 }));
 // Get all users (protected route)
@@ -234,7 +234,7 @@ router.get('/email/:email', asyncHandler(async (req, res) => {
 //get method to print respond message of working here
       router.get('/verifytoken/getuser',  authenticateToken,(req, res) => {
         email = req.user.email;
-        console.log(email);
+        
         //checke for email form database 
         db.connection.query('SELECT * FROM Users WHERE email = ?', [email], (err, results) => {
             if (err) {
@@ -244,7 +244,7 @@ router.get('/email/:email', asyncHandler(async (req, res) => {
             if (results.length === 0) {
                 return res.status(404).json({ success: false, message: 'No users found' });
             }
-            res.json({ success: true, message: 'API is working', data: results });
+            res.json({ success: true, message: 'API is working', data: results[0] });
         });
     });
 
