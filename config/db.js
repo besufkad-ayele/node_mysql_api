@@ -13,20 +13,16 @@ const connection = mysql.createConnection({
 function createTablesIfNotExist() {
     //sql query to add one column to table
     const sqlQueries = [
-        // SQL queries to create tables
         `CREATE TABLE IF NOT EXISTS Role (
             role_id INT PRIMARY KEY AUTO_INCREMENT,
             role_name VARCHAR(50) NOT NULL
         )`,
         `CREATE TABLE IF NOT EXISTS Users (
             user_id INT PRIMARY KEY AUTO_INCREMENT,
-            name VARCHAR(255) NOT NULL,
-            email VARCHAR(255) NOT NULL,
+            email VARCHAR(255) NOT NULL UNIQUE,
             password VARCHAR(255) NOT NULL,
-            phone VARCHAR(20) NOT NULL,
+            phone VARCHAR(20) NOT NULL UNIQUE,
             role_id INT NOT NULL,
-            UNIQUE (email),
-            UNIQUE (phone),
             FOREIGN KEY (role_id) REFERENCES Role(role_id)
         )`,
         `CREATE TABLE IF NOT EXISTS Category (
@@ -42,89 +38,85 @@ function createTablesIfNotExist() {
             category_id INT NOT NULL,
             FOREIGN KEY (category_id) REFERENCES Category(category_id)
         )`,
-        `CREATE TABLE IF NOT EXISTS Address (
+        `CREATE TABLE IF NOT EXISTS Customer_Address (
             address_id INT PRIMARY KEY AUTO_INCREMENT,
-            user_id INT,
-            restaurant_id INT,
+            user_id INT NOT NULL,
             state VARCHAR(255) NOT NULL,
             city VARCHAR(255) NOT NULL,
             street VARCHAR(255) NOT NULL,
             latitude DECIMAL(9, 6) NOT NULL,
             longitude DECIMAL(9, 6) NOT NULL,
-            FOREIGN KEY (user_id) REFERENCES Users(user_id),
-            FOREIGN KEY (restaurant_id) REFERENCES Restaurants(restaurant_id),
-            CHECK ((user_id IS NOT NULL AND restaurant_id IS NULL) OR (user_id IS NULL AND restaurant_id IS NOT NULL))
+            FOREIGN KEY (user_id) REFERENCES Users(user_id)
         )`,
-        `CREATE TABLE IF NOT EXISTS Content (
+        `CREATE TABLE IF NOT EXISTS Restaurant_Address (
+            address_id INT PRIMARY KEY AUTO_INCREMENT,
+            restaurant_id INT NOT NULL,
+            state VARCHAR(255) NOT NULL,
+            city VARCHAR(255) NOT NULL,
+            street VARCHAR(255) NOT NULL,
+            latitude DECIMAL(9, 6) NOT NULL,
+            longitude DECIMAL(9, 6) NOT NULL,
+            FOREIGN KEY (restaurant_id) REFERENCES Restaurants(restaurant_id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS Food_Content (
             content_id INT PRIMARY KEY AUTO_INCREMENT,
-            calories DECIMAL(10, 2) NOT NULL,
-            protein DECIMAL(10, 2) NOT NULL,
-            fat DECIMAL(10, 2) NOT NULL,
-            is_spicy BOOLEAN NOT NULL
+            calories FLOAT NOT NULL,
+            protein FLOAT NOT NULL,
+            fat FLOAT NOT NULL,
+            carbs FLOAT,
+            fiber FLOAT,
+            is_spicy BOOLEAN NOT NULL,
+            serving_size VARCHAR(50),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )`,
         `CREATE TABLE IF NOT EXISTS Food (
             food_id INT PRIMARY KEY AUTO_INCREMENT,
             category_id INT NOT NULL,
             name VARCHAR(255) NOT NULL,
-            isfavorite BOOLEAN DEFAULT FALSE,
-            description VARCHAR(255),
+            description TEXT,
             image VARCHAR(255),
             content_id INT NOT NULL,
-            discount DECIMAL(5, 2),
             restaurant_id INT NOT NULL,
             FOREIGN KEY (category_id) REFERENCES Category(category_id),
-            FOREIGN KEY (content_id) REFERENCES Content(content_id),
+            FOREIGN KEY (content_id) REFERENCES Food_Content(content_id),
             FOREIGN KEY (restaurant_id) REFERENCES Restaurants(restaurant_id)
         )`,
         `CREATE TABLE IF NOT EXISTS Menu (
             menu_id INT PRIMARY KEY AUTO_INCREMENT,
             restaurant_id INT NOT NULL,
             food_id INT NOT NULL,
-            discount DOUBLE DEFAULT 0,
+            discount DECIMAL(5, 2) DEFAULT 0,
             price DECIMAL(10, 2) NOT NULL,
             FOREIGN KEY (restaurant_id) REFERENCES Restaurants(restaurant_id),
             FOREIGN KEY (food_id) REFERENCES Food(food_id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS Favorite_Food (
+            favorite_id INT PRIMARY KEY AUTO_INCREMENT,
+            user_id INT NOT NULL,
+            menu_id INT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES Users(user_id),
+            FOREIGN KEY (menu_id) REFERENCES Menu(menu_id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS Drivers (
+            driver_id INT PRIMARY KEY AUTO_INCREMENT,
+            user_id INT NOT NULL,
+            location VARCHAR(255) NOT NULL,
+            email VARCHAR(255) NOT NULL UNIQUE,
+            driver_type ENUM('bicycle', 'motorcycle', 'car') DEFAULT 'bicycle',
+            FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
         )`,
         `CREATE TABLE IF NOT EXISTS Orders (
             order_id INT PRIMARY KEY AUTO_INCREMENT,
             user_id INT NOT NULL,
             driver_id INT,
             restaurant_id INT NOT NULL,
-            order_total DECIMAL(10, 2) NOT NULL,
+            total_order DECIMAL(10, 2) NOT NULL,
             delivery_status VARCHAR(20) NOT NULL,
-            FOREIGN KEY (user_id) REFERENCES Users(user_id),
-            FOREIGN KEY (driver_id) REFERENCES Users(user_id),
-            FOREIGN KEY (restaurant_id) REFERENCES Restaurants(restaurant_id)
-        )`,
-       ` CREATE TABLE IF NOT EXISTS Group_order (
-            group_order_id INT PRIMARY KEY AUTO_INCREMENT,
-            restaurant_id INT NOT NULL,
-            group_owner_id INT NOT NULL,
-            status VARCHAR(50),
-            group_name VARCHAR(100),
-            invitation_code VARCHAR(20),
-            payment_method VARCHAR(20),
-            payment_status VARCHAR(20),
-            payment_type ENUM('owner_pays', 'split_evenly', 'pay_own_order') DEFAULT 'owner_pays',
-            total_amount DECIMAL(10, 2),
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (restaurant_id) REFERENCES Restaurants(restaurant_id),
-            FOREIGN KEY (group_owner_id) REFERENCES Users(user_id)
-        )`,
-        `CREATE TABLE IF NOT EXISTS Group_order_members (
-            group_order_member_id INT PRIMARY KEY AUTO_INCREMENT,
-            group_order_id INT NOT NULL,
-            user_id INT NOT NULL,
-            FOREIGN KEY (group_order_id) REFERENCES Group_order(group_order_id),
-            FOREIGN KEY (user_id) REFERENCES Users(user_id)
-        )`,
-        `CREATE TABLE IF NOT EXISTS Drivers (
-            driver_id INT PRIMARY KEY AUTO_INCREMENT,
-            name VARCHAR(255) NOT NULL,
-            phone VARCHAR(20) NOT NULL,
-            location VARCHAR(255) NOT NULL,
-            email VARCHAR(255) NOT NULL,
-            driver_type ENUM('bicycle', 'motorcycle', 'car') DEFAULT 'bicycle'
+            FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
+            FOREIGN KEY (driver_id) REFERENCES Drivers(driver_id) ON DELETE SET NULL,
+            FOREIGN KEY (restaurant_id) REFERENCES Restaurants(restaurant_id) ON DELETE CASCADE
         )`,
         `CREATE TABLE IF NOT EXISTS Payment (
             payment_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -134,18 +126,50 @@ function createTablesIfNotExist() {
             status VARCHAR(20) NOT NULL,
             FOREIGN KEY (order_id) REFERENCES Orders(order_id)
         )`,
-        `CREATE TABLE IF NOT EXISTS rating (
+        `CREATE TABLE IF NOT EXISTS Group_Order (
+            group_order_id INT PRIMARY KEY AUTO_INCREMENT,
+            restaurant_id INT NOT NULL,
+            group_owner_id INT NOT NULL,
+            status VARCHAR(50),
+            group_name VARCHAR(100),
+            invitation_code VARCHAR(20),
+            payment_method VARCHAR(20),
+            payment_status VARCHAR(20),
+            payment_type ENUM('owner_pays', 'split_evenly', 'pay_own_order') DEFAULT 'owner_pays',
+            total_group_order DECIMAL(10, 2),
+            driver_id INT,
+            delivery_status VARCHAR(20) NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (restaurant_id) REFERENCES Restaurants(restaurant_id),
+            FOREIGN KEY (group_owner_id) REFERENCES Users(user_id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS Group_Order_Members (
+            group_order_member_id INT PRIMARY KEY AUTO_INCREMENT,
+            group_order_id INT NOT NULL,
+            user_id INT NOT NULL,
+            FOREIGN KEY (group_order_id) REFERENCES Group_Order(group_order_id),
+            FOREIGN KEY (user_id) REFERENCES Users(user_id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS Customer (
+            customer_id INT PRIMARY KEY AUTO_INCREMENT,
+            user_id INT NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            phone VARCHAR(20) NOT NULL,
+            image VARCHAR(255),
+            FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
+        )`,
+        `CREATE TABLE IF NOT EXISTS Rating (
             rating_id INT PRIMARY KEY AUTO_INCREMENT,
             user_id INT NOT NULL,
             restaurant_id INT NOT NULL,
-            rating DECIMAL(3, 1) NOT NULL,
+            rating DECIMAL(3, 1) NOT NULL CHECK (rating >= 0 AND rating <= 5),
             review_message TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES Users(user_id),
             FOREIGN KEY (restaurant_id) REFERENCES Restaurants(restaurant_id)
         )`
-     ]; 
+    ];
     // Connect to MySQL
     connection.connect((err) => {
         if (err) {

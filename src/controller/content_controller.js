@@ -1,7 +1,7 @@
 const db = require('../../config/db');
 
 exports.getAllContent = (req, res) => {
-    db.connection.query('SELECT * FROM Content', (err, results) => {
+    db.connection.query('SELECT * FROM Food_Content ', (err, results) => {
         if (err) {
             console.error('Error fetching Content:', err);
             return res.status(500).json({ error: 'Failed to fetch content' });
