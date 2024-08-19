@@ -1,7 +1,8 @@
 
 const express = require('express');
-const db = require('../config/db');
+const db = require('./config/db');
 const routes = require('./routes/insert');
+const config = require('./config/config');
 db.createTablesIfNotExist();
 const app = express();
 
@@ -15,7 +16,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use('/api', routes); // Mount routes under /api
 
 // Start server
-const PORT = process.env.PORT || 3000;
+const PORT = config.port || 2000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });

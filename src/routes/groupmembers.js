@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken } = require('../../services/middleware/authenticateToken');
+const { authenticateToken } = require('../middleware/authenticateToken');
 const groupOrderMembersController = require('../controller/groupMember_controller');
 
 // GET /api/group-order-members

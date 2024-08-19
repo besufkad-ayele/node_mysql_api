@@ -11,7 +11,7 @@ const connection = mysql.createConnection({
 
 // Function to create tables if they don't exist
 function createTablesIfNotExist() {
-    //sql query to add one column to table
+    //sql query to add one column to table 
     const sqlQueries = [
         `CREATE TABLE IF NOT EXISTS Role (
             role_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -25,18 +25,21 @@ function createTablesIfNotExist() {
             role_id INT NOT NULL,
             FOREIGN KEY (role_id) REFERENCES Role(role_id)
         )`,
-        `CREATE TABLE IF NOT EXISTS Category (
-            category_id INT PRIMARY KEY AUTO_INCREMENT,
-            category_name VARCHAR(50) NOT NULL,
-            category_type VARCHAR(50) NOT NULL
+        `CREATE TABLE IF NOT EXISTS Food_Category (
+            food_category_id INT PRIMARY KEY AUTO_INCREMENT,
+            food_category_name VARCHAR(50) NOT NULL
+        )`,
+        `CREATE TABLE IF NOT EXISTS Restaurant_Category (
+            restaurant_category_id INT PRIMARY KEY AUTO_INCREMENT,
+            restaurant_category_name VARCHAR(50) NOT NULL
         )`,
         `CREATE TABLE IF NOT EXISTS Restaurants (
             restaurant_id INT PRIMARY KEY AUTO_INCREMENT,
             name VARCHAR(255) NOT NULL,
             phone VARCHAR(20) NOT NULL,
             image VARCHAR(255),
-            category_id INT NOT NULL,
-            FOREIGN KEY (category_id) REFERENCES Category(category_id)
+            restaurant_category_id INT NOT NULL,
+            FOREIGN KEY (restaurant_category_id) REFERENCES Restaurant_Category(restaurant_category_id)
         )`,
         `CREATE TABLE IF NOT EXISTS Customer_Address (
             address_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -72,13 +75,13 @@ function createTablesIfNotExist() {
         )`,
         `CREATE TABLE IF NOT EXISTS Food (
             food_id INT PRIMARY KEY AUTO_INCREMENT,
-            category_id INT NOT NULL,
+            food_category_id INT NOT NULL,
             name VARCHAR(255) NOT NULL,
             description TEXT,
             image VARCHAR(255),
             content_id INT NOT NULL,
             restaurant_id INT NOT NULL,
-            FOREIGN KEY (category_id) REFERENCES Category(category_id),
+            FOREIGN KEY (food_category_id) REFERENCES Food_Category(food_category_id),
             FOREIGN KEY (content_id) REFERENCES Food_Content(content_id),
             FOREIGN KEY (restaurant_id) REFERENCES Restaurants(restaurant_id)
         )`,
@@ -157,6 +160,20 @@ function createTablesIfNotExist() {
             phone VARCHAR(20) NOT NULL,
             image VARCHAR(255),
             FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
+        )`,
+        `CREATE TABLE IF NOT EXISTS Delivery_Address (
+            address_id INT PRIMARY KEY AUTO_INCREMENT,
+            address_type ENUM('order', 'group_order') NOT NULL,
+            order_id INT,
+            group_order_id INT,
+            state VARCHAR(255) NOT NULL,
+            city VARCHAR(255) NOT NULL,
+            street VARCHAR(255) NOT NULL,
+            latitude DECIMAL(9, 6) NOT NULL,
+            longitude DECIMAL(9, 6) NOT NULL,
+            FOREIGN KEY (order_id) REFERENCES Orders(order_id) ON DELETE CASCADE,
+            FOREIGN KEY (group_order_id) REFERENCES Group_Order(group_order_id) ON DELETE CASCADE,
+            CHECK ((order_id IS NOT NULL AND group_order_id IS NULL) OR (order_id IS NULL AND group_order_id IS NOT NULL))
         )`,
         `CREATE TABLE IF NOT EXISTS Rating (
             rating_id INT PRIMARY KEY AUTO_INCREMENT,

@@ -1,0 +1,257 @@
+the sql sqlQueries and the dummy data to be inserted try it at home    
+    
+    const sqlQueries = [
+        `CREATE TABLE IF NOT EXISTS Role (
+            role_id INT PRIMARY KEY AUTO_INCREMENT,
+            role_name VARCHAR(50) NOT NULL
+        )`,
+        `CREATE TABLE IF NOT EXISTS Users (
+            user_id INT PRIMARY KEY AUTO_INCREMENT,
+            email VARCHAR(255) NOT NULL UNIQUE,
+            password VARCHAR(255) NOT NULL,
+            phone VARCHAR(20) NOT NULL UNIQUE,
+            role_id INT NOT NULL,
+            FOREIGN KEY (role_id) REFERENCES Role(role_id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS Food_Category (
+            food_category_id INT PRIMARY KEY AUTO_INCREMENT,
+            food_category_name VARCHAR(50) NOT NULL
+        )`,
+        `CREATE TABLE IF NOT EXISTS Restaurant_Category (
+            restaurant_category_id INT PRIMARY KEY AUTO_INCREMENT,
+            restaurant_category_name VARCHAR(50) NOT NULL
+        )`,
+        `CREATE TABLE IF NOT EXISTS Restaurants (
+            restaurant_id INT PRIMARY KEY AUTO_INCREMENT,
+            name VARCHAR(255) NOT NULL,
+            phone VARCHAR(20) NOT NULL,
+            image VARCHAR(255),
+            restaurant_category_id INT NOT NULL,
+            FOREIGN KEY (restaurant_category_id) REFERENCES Restaurant_Category(restaurant_category_id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS Customer_Address (
+            address_id INT PRIMARY KEY AUTO_INCREMENT,
+            user_id INT NOT NULL,
+            state VARCHAR(255) NOT NULL,
+            city VARCHAR(255) NOT NULL,
+            street VARCHAR(255) NOT NULL,
+            latitude DECIMAL(9, 6) NOT NULL,
+            longitude DECIMAL(9, 6) NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES Users(user_id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS Restaurant_Address (
+            address_id INT PRIMARY KEY AUTO_INCREMENT,
+            restaurant_id INT NOT NULL,
+            state VARCHAR(255) NOT NULL,
+            city VARCHAR(255) NOT NULL,
+            street VARCHAR(255) NOT NULL,
+            latitude DECIMAL(9, 6) NOT NULL,
+            longitude DECIMAL(9, 6) NOT NULL,
+            FOREIGN KEY (restaurant_id) REFERENCES Restaurants(restaurant_id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS Food_Content (
+            content_id INT PRIMARY KEY AUTO_INCREMENT,
+            calories FLOAT NOT NULL,
+            protein FLOAT NOT NULL,
+            fat FLOAT NOT NULL,
+            carbs FLOAT,
+            fiber FLOAT,
+            is_spicy BOOLEAN NOT NULL,
+            serving_size VARCHAR(50),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )`,
+        `CREATE TABLE IF NOT EXISTS Food (
+            food_id INT PRIMARY KEY AUTO_INCREMENT,
+            food_category_id INT NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            description TEXT,
+            image VARCHAR(255),
+            content_id INT NOT NULL,
+            restaurant_id INT NOT NULL,
+            FOREIGN KEY (food_category_id) REFERENCES Food_Category(food_category_id),
+            FOREIGN KEY (content_id) REFERENCES Food_Content(content_id),
+            FOREIGN KEY (restaurant_id) REFERENCES Restaurants(restaurant_id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS Menu (
+            menu_id INT PRIMARY KEY AUTO_INCREMENT,
+            restaurant_id INT NOT NULL,
+            food_id INT NOT NULL,
+            discount DECIMAL(5, 2) DEFAULT 0,
+            price DECIMAL(10, 2) NOT NULL,
+            FOREIGN KEY (restaurant_id) REFERENCES Restaurants(restaurant_id),
+            FOREIGN KEY (food_id) REFERENCES Food(food_id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS Favorite_Food (
+            favorite_id INT PRIMARY KEY AUTO_INCREMENT,
+            user_id INT NOT NULL,
+            menu_id INT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES Users(user_id),
+            FOREIGN KEY (menu_id) REFERENCES Menu(menu_id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS Drivers (
+            driver_id INT PRIMARY KEY AUTO_INCREMENT,
+            user_id INT NOT NULL,
+            location VARCHAR(255) NOT NULL,
+            email VARCHAR(255) NOT NULL UNIQUE,
+            driver_type ENUM('bicycle', 'motorcycle', 'car') DEFAULT 'bicycle',
+            FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
+        )`,
+        `CREATE TABLE IF NOT EXISTS Orders (
+            order_id INT PRIMARY KEY AUTO_INCREMENT,
+            user_id INT NOT NULL,
+            driver_id INT,
+            restaurant_id INT NOT NULL,
+            total_order DECIMAL(10, 2) NOT NULL,
+            delivery_status VARCHAR(20) NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
+            FOREIGN KEY (driver_id) REFERENCES Drivers(driver_id) ON DELETE SET NULL,
+            FOREIGN KEY (restaurant_id) REFERENCES Restaurants(restaurant_id) ON DELETE CASCADE
+        )`,
+        `CREATE TABLE IF NOT EXISTS Payment (
+            payment_id INT PRIMARY KEY AUTO_INCREMENT,
+            order_id INT NOT NULL,
+            payment_method VARCHAR(20) NOT NULL,
+            amount DECIMAL(10, 2) NOT NULL,
+            status VARCHAR(20) NOT NULL,
+            FOREIGN KEY (order_id) REFERENCES Orders(order_id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS Group_Order (
+            group_order_id INT PRIMARY KEY AUTO_INCREMENT,
+            restaurant_id INT NOT NULL,
+            group_owner_id INT NOT NULL,
+            status VARCHAR(50),
+            group_name VARCHAR(100),
+            invitation_code VARCHAR(20),
+            payment_method VARCHAR(20),
+            payment_status VARCHAR(20),
+            payment_type ENUM('owner_pays', 'split_evenly', 'pay_own_order') DEFAULT 'owner_pays',
+            total_group_order DECIMAL(10, 2),
+            driver_id INT,
+            delivery_status VARCHAR(20) NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (restaurant_id) REFERENCES Restaurants(restaurant_id),
+            FOREIGN KEY (group_owner_id) REFERENCES Users(user_id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS Group_Order_Members (
+            group_order_member_id INT PRIMARY KEY AUTO_INCREMENT,
+            group_order_id INT NOT NULL,
+            user_id INT NOT NULL,
+            FOREIGN KEY (group_order_id) REFERENCES Group_Order(group_order_id),
+            FOREIGN KEY (user_id) REFERENCES Users(user_id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS Customer (
+            customer_id INT PRIMARY KEY AUTO_INCREMENT,
+            user_id INT NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            phone VARCHAR(20) NOT NULL,
+            image VARCHAR(255),
+            FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
+        )`,
+        `CREATE TABLE IF NOT EXISTS Delivery_Address (
+            address_id INT PRIMARY KEY AUTO_INCREMENT,
+            address_type ENUM('order', 'group_order') NOT NULL,
+            order_id INT,
+            group_order_id INT,
+            state VARCHAR(255) NOT NULL,
+            city VARCHAR(255) NOT NULL,
+            street VARCHAR(255) NOT NULL,
+            latitude DECIMAL(9, 6) NOT NULL,
+            longitude DECIMAL(9, 6) NOT NULL,
+            FOREIGN KEY (order_id) REFERENCES Orders(order_id) ON DELETE CASCADE,
+            FOREIGN KEY (group_order_id) REFERENCES Group_Order(group_order_id) ON DELETE CASCADE,
+            CHECK ((order_id IS NOT NULL AND group_order_id IS NULL) OR (order_id IS NULL AND group_order_id IS NOT NULL))
+        )`,
+        `CREATE TABLE IF NOT EXISTS Rating (
+            rating_id INT PRIMARY KEY AUTO_INCREMENT,
+            user_id INT NOT NULL,
+            restaurant_id INT NOT NULL,
+            rating DECIMAL(3, 1) NOT NULL CHECK (rating >= 0 AND rating <= 5),
+            review_message TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES Users(user_id),
+            FOREIGN KEY (restaurant_id) REFERENCES Restaurants(restaurant_id)
+        )`
+    ];
+
+
+
+
+-- Insert into Role
+INSERT INTO Role (role_name) VALUES ('Customer'), ('Driver');
+
+-- Insert into Users
+INSERT INTO Users (email, password, phone, role_id) VALUES 
+('customer@example.com', 'password123', '1234567890', 1),
+('driver@example.com', 'password123', '0987654321', 2);
+
+-- Insert into Food_Category
+INSERT INTO Food_Category (food_category_name) VALUES ('Appetizers'), ('Main Course'), ('Desserts');
+
+-- Insert into Restaurant_Category
+INSERT INTO Restaurant_Category (restaurant_category_name) VALUES ('Fast Food'), ('Fine Dining');
+
+-- Insert into Restaurants
+INSERT INTO Restaurants (name, phone, image, restaurant_category_id) VALUES 
+('Restaurant A', '123-456-7890', 'imageA.jpg', 1),
+('Restaurant B', '098-765-4321', 'imageB.jpg', 2);
+
+-- Insert into Customer_Address
+INSERT INTO Customer_Address (user_id, state, city, street, latitude, longitude) VALUES 
+(1, 'State A', 'City A', 'Street A', 12.345678, 98.765432);
+
+-- Insert into Restaurant_Address
+INSERT INTO Restaurant_Address (restaurant_id, state, city, street, latitude, longitude) VALUES 
+(1, 'State A', 'City A', 'Street A', 12.345678, 98.765432);
+
+-- Insert into Food_Content
+INSERT INTO Food_Content (calories, protein, fat, carbs, fiber, is_spicy, serving_size) VALUES 
+(250.0, 10.0, 5.0, 30.0, 5.0, TRUE, '200g');
+
+-- Insert into Food
+INSERT INTO Food (food_category_id, name, description, image, content_id, restaurant_id) VALUES 
+(1, 'Food A', 'Delicious Food A', 'foodA.jpg', 1, 1);
+
+-- Insert into Menu
+INSERT INTO Menu (restaurant_id, food_id, discount, price) VALUES 
+(1, 1, 10.00, 15.00);
+
+-- Insert into Favorite_Food
+INSERT INTO Favorite_Food (user_id, menu_id) VALUES 
+(1, 1);
+
+-- Insert into Drivers
+INSERT INTO Drivers (user_id, location, email, driver_type) VALUES 
+(2, 'Location A', 'driver@example.com', 'motorcycle');
+
+-- Insert into Orders
+INSERT INTO Orders (user_id, driver_id, restaurant_id, total_order, delivery_status) VALUES 
+(1, NULL, 1, 30.00, 'Pending');
+
+-- Insert into Payment
+INSERT INTO Payment (order_id, payment_method, amount, status) VALUES 
+(1, 'Credit Card', 30.00, 'Paid');
+
+-- Insert into Group_Order
+INSERT INTO Group_Order (restaurant_id, group_owner_id, status, group_name, invitation_code, payment_method, payment_status, payment_type, total_group_order, driver_id, delivery_status) VALUES 
+(1, 1, 'Active', 'Group A', 'INVITE123', 'Credit Card', 'Paid', 'owner_pays', 50.00, NULL, 'Pending');
+
+-- Insert into Group_Order_Members
+INSERT INTO Group_Order_Members (group_order_id, user_id) VALUES 
+(1, 1);
+
+-- Insert into Customer
+INSERT INTO Customer (user_id, name, phone, image) VALUES 
+(1, 'Customer A', '123-456-7890', 'customerA.jpg');
+
+-- Insert into Rating
+INSERT INTO Rating (user_id, restaurant_id, rating, review_message) VALUES 
+(1, 1, 4.5, 'Great food and service!');
+
+-- Insert into Delivery_Address
+-- Ensure order_id or group_order_id exists and use the correct type
+INSERT INTO Delivery_Address (address_type, order_id, group_order_id, state, city, street, latitude, longitude) VALUES 
+('order', 1, NULL, 'State A', 'City A', 'Street A', 12.345678, 98.765432),
+('group_order', NULL, 1, 'State A', 'City A', 'Street A', 12.345678, 98.765432);

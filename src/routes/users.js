@@ -1,14 +1,15 @@
 const express = require('express');
 const router = express.Router();
 require('dotenv').config();
-const db = require('../../config/db');
-// Default role ID for regular users
+const db = require('../config/db');
+
 const jwt = require('jsonwebtoken');
 const asyncHandler = require('express-async-handler');
-const { authenticateToken, checkRole } = require('../../services/middleware/authenticateToken');
+const { authenticateToken, checkRole } = require('../middleware/authenticateToken');
 
-let refreshTokens = []; // In-memory store for refresh tokens
-router.post('/login/email', asyncHandler(async (req, res) => {
+let refreshTokens = [];
+// Login with Email
+router.post('/login/email', checkRole(1), asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
     db.connection.query('SELECT * FROM Users WHERE email = ?', [email], (err, results) => {
@@ -29,8 +30,8 @@ router.post('/login/email', asyncHandler(async (req, res) => {
         res.json({ success: true, message: 'Login successful.', accessToken, refreshToken,data:user });
     });
 }));
-// Get all users (protected route)
 
+// Get all users
 router.get('/',asyncHandler(async (req, res) => {
     db.connection.query('SELECT * FROM Users', (err, results) => {
         if (err) {
@@ -95,31 +96,35 @@ router.get('/:id', asyncHandler(async (req, res) => {
         res.json({ success: true, message: 'User retrieved successfully.', data: user });
     });
 }));
-// Create a new user
+
+// Register a new user
 router.post('/register', asyncHandler(async (req, res) => {
-    const { name, email, password, phone,role_id } = req.body;
+    const {email, password, phone, role_id } = req.body;
+
     // Check if at least one of email or phone is provided
-    if (!(email || phone)) {
-        return res.status(400).json({ success: false, message: 'Either email or phone is required.' });
+    if (!(email)) {
+        return res.status(400).json({ success: false, message: ' email is required.' });
     }
+    
     // Ensure required fields are provided
-    if (!name || !password) {
-        return res.status(400).json({ success: false, message: 'Name, password, and either email or phone are required.' });
+    if (!password) {
+        return res.status(400).json({ success: false, message: ' password is required.' });
     }
-    // Set default role_id to 1
+
+    // Set default role_id to 1 if not provided
     const defaultRoleId = role_id || 1;
 
     // Construct SQL query and values based on provided fields
     let sql, values;
     if (email && phone) {
-        sql = 'INSERT INTO Users (name, email, password, phone, role_id) VALUES (?, ?, ?, ?, ?)';
-        values = [name, email, password, phone, defaultRoleId];
+        sql = 'INSERT INTO Users (  email, password, phone, role_id) VALUES (  ?, ?, ?,?)';
+        values = [ email, password, phone, defaultRoleId];
     } else if (email) {
-        sql = 'INSERT INTO Users (name, email, password, role_id) VALUES (?, ?, ?, ?)';
-        values = [name, email, password, defaultRoleId];
+        sql = 'INSERT INTO Users ( email, password, role_id) VALUES ( ?, ?, ?)';
+        values = [email, password, defaultRoleId];
     } else if (phone) {
-        sql = 'INSERT INTO Users (name, password, phone, role_id) VALUES (?, ?, ?, ?)';
-        values = [name, password, phone, defaultRoleId];
+        sql = 'INSERT INTO Users ( password, phone, role_id) VALUES ( ?, ?, ?)';
+        values = [ password, phone, defaultRoleId];
     }
 
     // Execute the SQL query
@@ -129,9 +134,9 @@ router.post('/register', asyncHandler(async (req, res) => {
             return res.status(500).json({ success: false, message: err.message });
         }
 
-        const user = { id: result.insertId, name, email, phone };
-        const accessToken = generateAccessToken({ id: user.id, email: user.email });
-        const refreshToken = jwt.sign({ id: user.id, email: user.email }, process.env.REFRESH_TOKEN_SECRET);
+        const user = { user_id: result.insertId, email, phone };
+        const accessToken = generateAccessToken({ user_id: user.user_id, email: user.email });
+        const refreshToken = jwt.sign({ user_id: user.user_id, email: user.email }, process.env.REFRESH_TOKEN_SECRET);
 
         refreshTokens.push(refreshToken);
         res.json({ success: true, message: 'User created successfully.', accessToken, refreshToken });
@@ -143,12 +148,42 @@ router.put('/:id', asyncHandler(async (req, res) => {
     const userID = req.params.id;
     const { name, email, password, phone, role_id } = req.body;
 
-    if (!name || !email || !password || !phone) {
-        return res.status(400).json({ success: false, message: 'Name, email, password, and phone are required.' });
+    // Create an array to hold query parts and values
+    let updateFields = [];
+    let values = [];
+
+    // Append fields to the query and values array if provided
+    if (name) {
+        updateFields.push('name = ?');
+        values.push(name);
+    }
+    if (email) {
+        updateFields.push('email = ?');
+        values.push(email);
+    }
+    if (password) {
+        updateFields.push('password = ?');
+        values.push(password);
+    }
+    if (phone) {
+        updateFields.push('phone = ?');
+        values.push(phone);
+    }
+    if (role_id) {
+        updateFields.push('role_id = ?');
+        values.push(role_id);
     }
 
-    const sql = 'UPDATE Users SET name = ?, email = ?, password = ?, phone = ?, role_id = ? WHERE user_id = ?';
-    const values = [name, email, password, phone, role_id || DEFAULT_ROLE_ID, userID];
+    // Check if any fields are provided to update
+    if (updateFields.length === 0) {
+        return res.status(400).json({ success: false, message: 'No fields provided to update.' });
+    }
+
+    // Add the user ID to the values array
+    values.push(userID);
+
+    // Construct the SQL query
+    const sql = `UPDATE Users SET ${updateFields.join(', ')} WHERE user_id = ?`;
 
     db.connection.query(sql, values, (err, result) => {
         if (err) {
@@ -189,30 +224,6 @@ router.post('/logout', (req, res) => {
     res.json({ success: true, message: 'Logout successful.',data:refreshTokens });
 });
 
-// Refresh token
-// router.post('/refresh', (req, res) => {
-//     const refreshToken = req.body.token;
-//     if (!refreshToken) {
-//         return res.status(401).json({ success: false, message: 'Refresh token required.' });
-//     }
-
-//     if (!refreshTokens.includes(refreshToken)) {
-//         return res.status(403).json({ success: false, message: 'Invalid refresh token.' });
-//     }
-
-//     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
-//         if (err) {
-//             return res.status(403).json({ success: false, message: 'Invalid refresh token.' });
-//         }
-
-//         const accessToken = generateAccessToken({ id: user.id, email: user.email });
-//         res.json({ success: true, accessToken });
-//     });
-// });
-
-//get user id by the email
-// the post man method will look like 
-// http://localhost:3000/api/users/email/1
 router.get('/email/:email', asyncHandler(async (req, res) => {
     const email = req.params.email;
 

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken } = require('../../services/middleware/authenticateToken');
+const { authenticateToken } = require('../middleware/authenticateToken');
 const ratingController = require('../controller/rating_controller');
 
 // POST /api/rating

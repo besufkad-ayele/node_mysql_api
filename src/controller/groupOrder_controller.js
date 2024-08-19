@@ -1,4 +1,4 @@
-const db = require('../../config/db');
+const db = require('../config/db');
 
 exports.getGroupOrderDetails = (req, res) => {
     const groupOrderId = req.params.id;

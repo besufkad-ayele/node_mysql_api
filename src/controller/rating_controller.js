@@ -1,4 +1,4 @@
-const db = require('../../config/db');
+const db = require('../config/db');
 
 // POST /api/rating
 const createRating = (req, res) => {

@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken, checkRole } = require('../../services/middleware/authenticateToken');
+const { authenticateToken, checkRole } = require('../middleware/authenticateToken');
 
 const roleController = require('../controller/role_controller');
+
 // GET /api/roles
 router.get('/', authenticateToken,checkRole(1), roleController.getAllRoles);
 

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken, checkRole } = require('../../services/middleware/authenticateToken');
-const db = require('../../config/db');
+const { authenticateToken, checkRole } = require('../middleware/authenticateToken');
+const db = require('../config/db');
 
 // Import route handlers
 //here the example how to make these line in one if needed

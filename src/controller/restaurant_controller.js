@@ -1,4 +1,4 @@
-const db = require('../../config/db');
+const db = require('../config/db');
 const { validationResult } = require('express-validator');
 
 // Get all restaurants with category details

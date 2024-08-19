@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { check } = require('express-validator');
-const { authenticateToken } = require('../../services/middleware/authenticateToken');
+const { authenticateToken } = require('../middleware/authenticateToken');
 const restaurantController = require('../controller/restaurant_controller');
 
 // Get all restaurants

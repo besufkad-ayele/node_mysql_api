@@ -1,4 +1,4 @@
-const db = require('../../config/db');
+const db = require('../config/db');
 
 exports.getAllGroupOrderMembers = (req, res) => {
     db.connection.query('SELECT * FROM Group_order_members', (err, results) => {
