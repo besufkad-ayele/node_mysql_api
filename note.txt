@@ -255,3 +255,10 @@ INSERT INTO Rating (user_id, restaurant_id, rating, review_message) VALUES
 INSERT INTO Delivery_Address (address_type, order_id, group_order_id, state, city, street, latitude, longitude) VALUES 
 ('order', 1, NULL, 'State A', 'City A', 'Street A', 12.345678, 98.765432),
 ('group_order', NULL, 1, 'State A', 'City A', 'Street A', 12.345678, 98.765432);
+
+
+
+
+
+
+https://www.msn.com/en-xl/news/other/the-best-romantic-movies-of-all-time/ss-BB1mNWdh#interstitial=1

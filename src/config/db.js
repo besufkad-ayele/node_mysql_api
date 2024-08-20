@@ -104,9 +104,10 @@ function createTablesIfNotExist() {
         )`,
         `CREATE TABLE IF NOT EXISTS Drivers (
             driver_id INT PRIMARY KEY AUTO_INCREMENT,
-            user_id INT NOT NULL,
+            name VARCHAR(255),
+            user_id INT NOT NULL UNIQUE,
+            image VARCHAR(255),
             location VARCHAR(255) NOT NULL,
-            email VARCHAR(255) NOT NULL UNIQUE,
             driver_type ENUM('bicycle', 'motorcycle', 'car') DEFAULT 'bicycle',
             FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
         )`,
@@ -155,7 +156,7 @@ function createTablesIfNotExist() {
         )`,
         `CREATE TABLE IF NOT EXISTS Customer (
             customer_id INT PRIMARY KEY AUTO_INCREMENT,
-            user_id INT NOT NULL,
+            user_id INT NOT NULL UNIQUE,
             name VARCHAR(255) NOT NULL,
             phone VARCHAR(20) NOT NULL,
             image VARCHAR(255),
@@ -193,8 +194,6 @@ function createTablesIfNotExist() {
             console.error('Error connecting to MySQL Xammp: ' + err.stack);
             return;
         }
-        console.log('Connected to MySQL as id ' + connection.threadId);
-
         // Create the database if it doesn't exist
         connection.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DATABASE}`, (err) => {
             if (err) {
@@ -209,7 +208,14 @@ function createTablesIfNotExist() {
                     console.error('Error using database: ' + err.stack);
                     return;
                 }
-                console.log(`Using database "${process.env.DATABASE}" From "${process.env.DATABASE.length}" Databases`);
+                //PRINT THE NUMBER OF TABLES IN THE DATABASE
+                connection.query("SELECT COUNT(*) AS tableCount FROM information_schema.tables WHERE table_schema = ?", [process.env.DATABASE], (err, result) => {
+                    if (err) {
+                        console.error('Error counting tables: ' + err.stack);
+                        return;
+                    }
+                    console.log(`Number of tables in the database: ${result[0].tableCount}`);
+                });
 
                 // Execute each table creation query in sequence
                 sqlQueries.forEach((sql) => {
