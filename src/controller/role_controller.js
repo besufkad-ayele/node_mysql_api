@@ -3,6 +3,7 @@ const db = require('../config/db');
 // GET /api/users
 exports.getAllRoles = (req, res) => {
     db.connection.query('SELECT * FROM role', (err, results) => {
+        console.log('get all roles');
         if (err) {
             console.error('Error fetching roles:', err);
             return res.status(500).json({ error: 'Failed to fetch roles' });
